@@ -1,35 +1,30 @@
 import React, { useState } from 'react';
 import Orb from './Orb';
 import ChatBox from './ChatBox';
-import axios from 'axios';  // Import axios
+import axios from 'axios';
 import './App.css';
 
 function App() {
   const [isRaging, setIsRaging] = useState(false);
-  const [isOrbOn, setIsOrbOn] = useState(false);  // Track if the orb is turned on
 
   const handleSend = async (query) => {
     let response = '';
 
-    if (isOrbOn) {
-      try {
-        response = await getAIResponse(query);
-      } catch (error) {
-        console.error('Error with OpenAI API:', error);
-        response = 'Sorry, something went wrong. Please try again.';
-      }
-
-      if (response.toLowerCase().includes('rage')) {
-        setIsRaging(true);
-      } else {
-        setIsRaging(false);
-      }
-
-      // Convert the response to Venjix's voice using text-to-speech
-      speakWithVenjixVoice(response);
-    } else {
-      response = 'The orb is off. Please turn it on to interact.';
+    try {
+      response = await getAIResponse(query);
+    } catch (error) {
+      console.error('Error with OpenAI API:', error);
+      response = 'Sorry, something went wrong. Please try again.';
     }
+
+    if (response.toLowerCase().includes('rage')) {
+      setIsRaging(true);
+    } else {
+      setIsRaging(false);
+    }
+
+    // Convert the response to Venjix's voice using text-to-speech
+    speakWithVenjixVoice(response);
 
     return response;
   };
@@ -71,19 +66,10 @@ function App() {
     window.speechSynthesis.speak(utterance);
   };
 
-  const toggleOrb = () => {
-    setIsOrbOn(prevState => {
-      const newState = !prevState;
-      console.log('Orb state:', newState);  // Log the new state
-      return newState;
-    });
-    setIsRaging(false);  // Reset the raging state when toggling
-  };
-  
   return (
     <div className="App">
-      <Orb isRaging={isRaging} onToggle={toggleOrb} />
-      <ChatBox onSend={handleSend} isEnabled={isOrbOn} />
+      <Orb isRaging={isRaging} />
+      <ChatBox onSend={handleSend} /> {/* ChatBox is always enabled */}
     </div>
   );
 }

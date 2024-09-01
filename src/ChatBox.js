@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatBox.css';
 
-const ChatBox = ({ onSend, isEnabled }) => {
+const ChatBox = ({ onSend }) => {
   const [input, setInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
   const chatEndRef = useRef(null);
@@ -11,19 +11,19 @@ const ChatBox = ({ onSend, isEnabled }) => {
   };
 
   useEffect(() => {
-    scrollToBottom(); // Scroll to bottom every time the chat history updates
+    scrollToBottom();
   }, [chatHistory]);
 
   const handleSend = async () => {
-    if (input.trim() && isEnabled) {  // Ensure this only works when enabled
+    if (input.trim()) {
       const userMessage = { sender: 'user', text: input };
-      setChatHistory((prevHistory) => [...prevHistory, userMessage]);
+      setChatHistory([...chatHistory, userMessage]);
 
       const response = await onSend(input);
       const botMessage = { sender: 'bot', text: response };
       setChatHistory((prevHistory) => [...prevHistory, botMessage]);
 
-      setInput('');  // Clear input
+      setInput('');
     }
   };
 
@@ -43,9 +43,8 @@ const ChatBox = ({ onSend, isEnabled }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your query..."
-          disabled={!isEnabled}  // Disabled based on isEnabled prop
         />
-        <button onClick={handleSend} disabled={!isEnabled}>Send</button>
+        <button onClick={handleSend}>Send</button>
       </div>
     </div>
   );
