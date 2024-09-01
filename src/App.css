@@ -1,0 +1,27 @@
+/* Ensure the body and html elements cover the entire viewport */
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background-color: black;
+}
+
+/* The App component should also cover the entire screen */
+.App {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  width: 100vw;
+  background-color: black;
+  margin: 0;
+  padding: 0;
+}
+
+.orb-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+}
