@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './ChatBox.css';
 
-const ChatBox = ({ onSend }) => {
+const ChatBox = ({ onSend, isEnabled }) => {
   const [input, setInput] = useState('');
   const [chatHistory, setChatHistory] = useState([]);
-  const chatEndRef = useRef(null); // Reference to the bottom of the chat
+  const chatEndRef = useRef(null);
 
   const scrollToBottom = () => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -15,15 +15,15 @@ const ChatBox = ({ onSend }) => {
   }, [chatHistory]);
 
   const handleSend = async () => {
-    if (input.trim()) {
+    if (input.trim() && isEnabled) {  // Ensure this only works when enabled
       const userMessage = { sender: 'user', text: input };
-      setChatHistory([...chatHistory, userMessage]);
+      setChatHistory((prevHistory) => [...prevHistory, userMessage]);
 
-      const response = await onSend(input); // Get the AI response
+      const response = await onSend(input);
       const botMessage = { sender: 'bot', text: response };
-      setChatHistory((prevHistory) => [...prevHistory, userMessage, botMessage]);
+      setChatHistory((prevHistory) => [...prevHistory, botMessage]);
 
-      setInput(''); // Clear the input after sending
+      setInput('');  // Clear input
     }
   };
 
@@ -35,7 +35,7 @@ const ChatBox = ({ onSend }) => {
             {msg.text}
           </div>
         ))}
-        <div ref={chatEndRef} /> {/* Empty div to scroll to */}
+        <div ref={chatEndRef} />
       </div>
       <div className="chat-input">
         <input
@@ -43,8 +43,9 @@ const ChatBox = ({ onSend }) => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Type your query..."
+          disabled={!isEnabled}  // Disabled based on isEnabled prop
         />
-        <button onClick={handleSend}>Send</button>
+        <button onClick={handleSend} disabled={!isEnabled}>Send</button>
       </div>
     </div>
   );

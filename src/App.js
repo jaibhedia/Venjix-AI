@@ -1,37 +1,59 @@
 import React, { useState } from 'react';
 import Orb from './Orb';
 import ChatBox from './ChatBox';
+import axios from 'axios';  // Import axios
 import './App.css';
 
 function App() {
   const [isRaging, setIsRaging] = useState(false);
+  const [isOrbOn, setIsOrbOn] = useState(false);  // Track if the orb is turned on
 
   const handleSend = async (query) => {
-    const response = getHardcodedResponse(query);
-    if (response.toLowerCase().includes('rage')) {
-      setIsRaging(true);
-    } else {
-      setIsRaging(false);
-    }
+    let response = '';
 
-    // Convert the response to Venjix's voice using text-to-speech
-    speakWithVenjixVoice(response);
+    if (isOrbOn) {
+      try {
+        response = await getAIResponse(query);
+      } catch (error) {
+        console.error('Error with OpenAI API:', error);
+        response = 'Sorry, something went wrong. Please try again.';
+      }
+
+      if (response.toLowerCase().includes('rage')) {
+        setIsRaging(true);
+      } else {
+        setIsRaging(false);
+      }
+
+      // Convert the response to Venjix's voice using text-to-speech
+      speakWithVenjixVoice(response);
+    } else {
+      response = 'The orb is off. Please turn it on to interact.';
+    }
 
     return response;
   };
 
-  const getHardcodedResponse = (query) => {
-    const lowerCaseQuery = query.toLowerCase();
+  const getAIResponse = async (query) => {
+    const apiKey = 'your-openai-api-key';  // Replace with your actual OpenAI API key
 
-    if (lowerCaseQuery.includes('hello')) {
-      return 'Hello! How can I assist you today?';
-    } else if (lowerCaseQuery.includes('what is your name')) {
-      return 'I am Venjix, the most advanced AI.';
-    } else if (lowerCaseQuery.includes('rage')) {
-      return 'I am feeling enraged!';
-    } else {
-      return 'Sorry, I didn\'t understand that. Can you please rephrase?';
-    }
+    const openAIResponse = await axios.post(
+      'https://api.openai.com/v1/chat/completions',
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [{ role: 'user', content: query }],
+        max_tokens: 150,
+        temperature: 0.7,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+      }
+    );
+
+    return openAIResponse.data.choices[0].message.content.trim();
   };
 
   const speakWithVenjixVoice = (text) => {
@@ -39,7 +61,6 @@ function App() {
 
     // Customize the voice settings to mimic Venjix
     const voices = window.speechSynthesis.getVoices();
-    // Select a deep male voice; you might need to experiment with available voices in your browser
     const venjixVoice = voices.find(voice => voice.name.includes('Google UK English Male')) || voices[0];
     utterance.voice = venjixVoice;
     utterance.pitch = 0.5;  // Lower pitch for a deeper voice
@@ -50,10 +71,19 @@ function App() {
     window.speechSynthesis.speak(utterance);
   };
 
+  const toggleOrb = () => {
+    setIsOrbOn(prevState => {
+      const newState = !prevState;
+      console.log('Orb state:', newState);  // Log the new state
+      return newState;
+    });
+    setIsRaging(false);  // Reset the raging state when toggling
+  };
+  
   return (
     <div className="App">
-      <Orb isRaging={isRaging} />
-      <ChatBox onSend={handleSend} />
+      <Orb isRaging={isRaging} onToggle={toggleOrb} />
+      <ChatBox onSend={handleSend} isEnabled={isOrbOn} />
     </div>
   );
 }
